@@ -6,7 +6,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form action="modulos/procesar_pago_masivo.php" method="POST">
+            <form id="formPago" method="POST">
                 <div class="modal-body">
                     <div class="row mb-3 bg-light p-2 rounded mx-0">
                         <div class="col-8">
