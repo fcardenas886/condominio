@@ -1,77 +1,117 @@
 <?php
 session_start();
 
-// 1. El Guardia: Si no hay sesión, al login
 if (!isset($_SESSION['id_admin'])) {
     header("Location: index.php");
     exit();
 }
 
-// 2. Traemos la conexión (está en la carpeta includes)
 require_once 'includes/conexion.php';
 
-// 3. Consultamos el total de casas
-$stmt = $pdo->query("SELECT COUNT(*) FROM casas");
-$totalCasas = $stmt->fetchColumn();
+// --- DATOS OPERATIVOS ---
+$totalCasas = $pdo->query("SELECT COUNT(*) FROM casas")->fetchColumn();
+$totalDisponibles = $pdo->query("SELECT COUNT(*) FROM casas WHERE estado = 'Disponible'")->fetchColumn();
+$totalOcupadas = $pdo->query("SELECT COUNT(*) FROM casas WHERE estado = 'Ocupada'")->fetchColumn();
 
-// 2. Solo las que están marcadas como 'Disponible'
-$stmt = $pdo->query("SELECT COUNT(*) FROM casas WHERE estado = 'Disponible'");
-$totalDisponibles = $stmt->fetchColumn();
+// --- DATOS FINANCIEROS (Usando tus nuevas vistas) ---
 
-// 3. Solo las que están marcadas como 'Ocupada'
-$stmt = $pdo->query("SELECT COUNT(*) FROM casas WHERE estado = 'Ocupada'");
-$totalOcupadas = $stmt->fetchColumn();
+// 1. Recaudación del mes actual
+$mes_actual = date('m');
+$anio_actual = date('Y');
+$stmt_ing = $pdo->prepare("SELECT SUM(monto_pagado) FROM vista_reporte_ingresos_completo WHERE mes = ? AND anio = ? AND metodo_pago != 'Saldo a Favor'");
+$stmt_ing->execute([$mes_actual, $anio_actual]);
+$recaudacionMes = $stmt_ing->fetchColumn() ?: 0;
 
-$nombreAdmin = $_SESSION['nombre_admin'];
+// 2. Morosidad Total Crítica
+$totalMoroso = $pdo->query("SELECT SUM(saldo_pendiente) FROM vista_reporte_morosidad")->fetchColumn() ?: 0;
+
+$nombreAdmin = $_SESSION['nombre_admin'] ?? 'Admin';
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Administración</title>
+    <title>Dashboard - GestiDom</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .card-stat { border: none; border-radius: 15px; transition: transform 0.3s; }
+        .card-stat:hover { transform: translateY(-5px); }
+        .icon-box { font-size: 2rem; opacity: 0.3; position: absolute; right: 15px; top: 15px; }
+    </style>
 </head>
-
 <body class="bg-light">
 
-    <!-- <nav class="navbar navbar-dark bg-dark mb-4">
-        <div class="container-fluid">
-            <span class="navbar-brand">Condominio Pro</span>
-            <span class="navbar-text text-white">Bienvenido, <?php echo $nombreAdmin; ?></span>
-            <a href="logout.php" class="btn btn-outline-danger btn-sm">Salir</a>
-        </div>
-    </nav> -->
     <?php include 'includes/menu.php'; ?>
 
-    <div class="container">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Resumen General</h2>
+            <span class="badge bg-white text-dark shadow-sm p-2 text-uppercase">Período: <?php echo date('F Y'); ?></span>
+        </div>
 
-
-        <div class="row text-center">
-            <div class="col-md-4 mb-3">
-                <div class="card bg-primary text-white shadow">
-                    <div class="card-body">
-                        <h6>Total de Casas 🏠</h6>
-                        <h2 class="display-4"><?php echo $totalCasas; ?></h2>
-                    </div>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card card-stat bg-primary text-white shadow-sm p-3">
+                    <div class="icon-box"><i class="bi bi-house-door"></i></div>
+                    <small class="fw-bold">TOTAL PROPIEDADES</small>
+                    <h2 class="display-6 fw-bold"><?php echo $totalCasas; ?></h2>
                 </div>
             </div>
-
-            <div class="col-md-4 mb-3">
-                <div class="card bg-success text-white shadow">
-                    <div class="card-body">
-                        <h6>Disponibles ✅</h6>
-                        <h2 class="display-4"><?php echo $totalDisponibles; ?></h2>
-                    </div>
+            <div class="col-md-4">
+                <div class="card card-stat bg-success text-white shadow-sm p-3">
+                    <div class="icon-box"><i class="bi bi-check-circle"></i></div>
+                    <small class="fw-bold">CASAS DISPONIBLES</small>
+                    <h2 class="display-6 fw-bold"><?php echo $totalDisponibles; ?></h2>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="card card-stat bg-dark text-white shadow-sm p-3">
+                    <div class="icon-box"><i class="bi bi-people"></i></div>
+                    <small class="fw-bold">UNIDADES OCUPADAS</small>
+                    <h2 class="display-6 fw-bold"><?php echo $totalOcupadas; ?></h2>
+                </div>
+            </div>
+        </div>
 
-            <div class="col-md-4 mb-3">
-                <div class="card bg-warning text-dark shadow">
-                    <div class="card-body">
-                        <h6>Ocupadas 👤</h6>
-                        <h2 class="display-4"><?php echo $totalOcupadas; ?></h2>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card card-stat bg-white shadow-sm p-4 border-start border-primary border-5">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted fw-bold text-uppercase">Recaudación Real (Mes)</small>
+                            <h2 class="fw-bold text-primary mt-1">$<?php echo number_format($recaudacionMes, 0, ',', '.'); ?></h2>
+                        </div>
+                        <div class="text-primary fs-1"><i class="bi bi-cash-coin"></i></div>
+                    </div>
+                    <hr>
+                    <a href="reportes/reporte_ingresos.php" class="small text-decoration-none">Ver detalle de ingresos →</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-stat bg-white shadow-sm p-4 border-start border-danger border-5">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted fw-bold text-uppercase">Deuda Total Pendiente</small>
+                            <h2 class="fw-bold text-danger mt-1">$<?php echo number_format($totalMoroso, 0, ',', '.'); ?></h2>
+                        </div>
+                        <div class="text-danger fs-1"><i class="bi bi-exclamation-octagon"></i></div>
+                    </div>
+                    <hr>
+                    <a href="reportes/reporte_morosidad.php" class="small text-danger text-decoration-none fw-bold">Gestionar cobranza ahora →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm p-3">
+                    <h6 class="fw-bold mb-3 small text-muted">ACCIONES RÁPIDAS</h6>
+                    <div class="d-flex gap-2">
+                        <a href="recaudacion.php" class="btn btn-outline-primary"><i class="bi bi-plus-circle"></i> Nuevo Pago</a>
+                        <a href="reportes/balance_general.php" class="btn btn-outline-dark"><i class="bi bi-bar-chart"></i> Ver Balance</a>
+                        <a href="casas.php" class="btn btn-outline-secondary"><i class="bi bi-gear"></i> Gestionar Unidades</a>
                     </div>
                 </div>
             </div>
@@ -80,5 +120,4 @@ $nombreAdmin = $_SESSION['nombre_admin'];
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

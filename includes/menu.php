@@ -54,9 +54,9 @@
           <ul class="dropdown-menu shadow">
             <li><a class="dropdown-item" href="reporte_morosidad.php">Lista de Morosos</a></li>
             <li><a class="dropdown-item" href="reporte_ingresos.php">Resumen de Ingresos</a></li>
-            <li><a class="dropdown-item" href="reporte_gastos.php">Resumen de Gastos</a></li>
+            <li><a class="dropdown-item" href="reporte_egresos.php">Resumen de Egresos</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="reporte_general.php">Balance General</a></li>
+            <li><a class="dropdown-item" href="balance_general.php">Balance General</a></li>
           </ul>
         </li>
       </ul>

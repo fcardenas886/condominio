@@ -5,11 +5,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deudas_ids'])) {
     $ids = $_POST['deudas_ids'];
     $metodo = $_POST['metodo'] ?? 'Otros';
     $monto_recibido = floatval($_POST['monto_recibido']);
-    $usar_saldo = isset($_POST['usar_saldo_favor']) ? true : false;
+    $usar_saldo = isset($_POST['usar_saldo_favor']);
     $dinero_disponible = $monto_recibido;
-    
-    $id_transaccion = ""; 
-    $prefijo_fecha = "CP-" . date('ymd'); 
+
+    $id_transaccion = "";
+    $prefijo_fecha = "CP-" . date('ymd');
+
+    // --- NUEVO: GENERAR TOKEN ÚNICO PARA ESTA OPERACIÓN ---
+    $token = bin2hex(random_bytes(16));
 
     try {
         $pdo->beginTransaction();
@@ -22,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deudas_ids'])) {
                                      WHERE c.id_contrato = (SELECT id_contrato FROM detalle_cobros WHERE id_detalle = ? LIMIT 1)");
             $stmt_s->execute([$ids[0]]);
             $res_s = $stmt_s->fetch();
-            
+
             if ($res_s && $res_s['saldo_favor'] > 0) {
                 $monto_saldo_usado = (float)$res_s['saldo_favor'];
                 $dinero_disponible += $monto_saldo_usado;
@@ -30,13 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deudas_ids'])) {
                 $stmt_zero = $pdo->prepare("UPDATE arrendatarios SET saldo_favor = 0 WHERE id_arrendatario = ?");
                 $stmt_zero->execute([$res_s['id_arrendatario']]);
 
-                $stmt_hist_saldo = $pdo->prepare("INSERT INTO pagos (id_detalle, monto_pagado, fecha_pago, metodo_pago, notas) 
-                                                 VALUES (?, ?, NOW(), 'Saldo a Favor', ?)");
-                $stmt_hist_saldo->execute([$ids[0], $monto_saldo_usado, "Uso de saldo acumulado anterior"]);
-                
+                // AGREGAMOS TOKEN AL INSERT
+                $stmt_hist_saldo = $pdo->prepare("INSERT INTO pagos (id_detalle, monto_pagado, fecha_pago, metodo_pago, token, notas) 
+                                                 VALUES (?, ?, NOW(), 'Saldo a Favor', ?, ?)");
+                $stmt_hist_saldo->execute([$ids[0], $monto_saldo_usado, $token, "Uso de saldo acumulado anterior"]);
+
                 $primer_id = $pdo->lastInsertId();
                 $id_transaccion = $prefijo_fecha . "-" . str_pad($primer_id, 4, "0", STR_PAD_LEFT);
-                
+
                 $pdo->prepare("UPDATE pagos SET id_transaccion = ? WHERE id_pago = ?")
                     ->execute([$id_transaccion, $primer_id]);
             }
@@ -53,10 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deudas_ids'])) {
             $deuda_pendiente = $item['monto_total'] - $item['monto_pagado_acumulado'];
             $abono = ($dinero_disponible >= $deuda_pendiente) ? $deuda_pendiente : $dinero_disponible;
 
-            $stmt_pago = $pdo->prepare("INSERT INTO pagos (id_detalle, monto_pagado, fecha_pago, metodo_pago, notas) 
-                                        VALUES (?, ?, NOW(), ?, ?)");
-            $stmt_pago->execute([$id, $abono, $metodo, "Abono a " . $item['concepto']]);
-            
+            // AGREGAMOS TOKEN AL INSERT
+            $stmt_pago = $pdo->prepare("INSERT INTO pagos (id_detalle, monto_pagado, fecha_pago, metodo_pago, token, notas) 
+                                        VALUES (?, ?, NOW(), ?, ?, ?)");
+            $stmt_pago->execute([$id, $abono, $metodo, $token, "Abono a " . $item['concepto']]);
+
             $nuevo_id_pago = $pdo->lastInsertId();
 
             if (empty($id_transaccion)) {
@@ -83,17 +88,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deudas_ids'])) {
                           WHERE id_arrendatario = (SELECT id_arrendatario FROM contratos WHERE id_contrato = (SELECT id_contrato FROM detalle_cobros WHERE id_detalle = ? LIMIT 1))";
             $pdo->prepare($sql_saldo)->execute([$dinero_sobrante, $ids[0]]);
 
-            $stmt_pago_excedente = $pdo->prepare("INSERT INTO pagos (id_detalle, id_transaccion, monto_pagado, fecha_pago, metodo_pago, notas) 
-                                                 VALUES (?, ?, NOW(), ?, ?)");
-            $stmt_pago_excedente->execute([$ids[0], $id_transaccion, $dinero_sobrante, $metodo, "Excedente guardado como Saldo a Favor"]);
+            // AGREGAMOS TOKEN AL INSERT
+            $stmt_pago_excedente = $pdo->prepare("INSERT INTO pagos (id_detalle, id_transaccion, monto_pagado, fecha_pago, metodo_pago, token, notas) 
+                                     VALUES (?, ?, ?, NOW(), ?, ?, ?)");
+            $stmt_pago_excedente->execute([$ids[0], $id_transaccion, $dinero_sobrante, $metodo, $token, "Excedente guardado como Saldo a Favor"]);
         }
 
         $pdo->commit();
 
-        // --- CAMBIO CLAVE PARA AJAX ---
-        // Simplemente imprimimos el ID de transacción. El JS lo recibirá como 'response'
-        echo $id_transaccion; 
-
+        // --- IMPORTANTE: ENVIAR FOLIO Y TOKEN AL AJAX ---
+        // Usamos el separador | para que el JS pueda dividirlos
+        echo $id_transaccion . "|" . $token;
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         echo "Error: " . $e->getMessage();
