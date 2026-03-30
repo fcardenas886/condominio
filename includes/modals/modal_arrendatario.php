@@ -11,23 +11,39 @@
                     <input type="hidden" name="accion" id="accion_arrendatario" value="crear">
 
                     <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre Completo</label>
+                        <label for="nombre" class="form-label fw-bold">Nombre Completo</label>
                         <input type="text" class="form-control" name="nombre" id="nombre" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="rut" class="form-label">RUT</label>
-                        <input type="text" class="form-control" name="rut" id="rut" placeholder="12.345.678-9" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="telefono" class="form-label">Teléfono</label>
-                        <div class="input-group">
-                            <span class="input-group-text">+56</span>
-                            <input type="tel" class="form-control" name="telefono" id="telefono" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="rut" class="form-label fw-bold">RUT</label>
+                            <input type="text" class="form-control" name="rut" id="rut" placeholder="12.345.678-9" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="telefono" class="form-label fw-bold">Teléfono</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+56</span>
+                                <input type="tel" class="form-control" name="telefono" id="telefono" required>
+                            </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="correo" class="form-label">Correo Electrónico</label>
+                        <label for="correo" class="form-label fw-bold">Correo Electrónico</label>
                         <input type="email" class="form-control" name="correo" id="correo" required>
+                    </div>
+
+                    <hr>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="crearPerfil" name="crear_perfil" value="1" onchange="togglePassword()">
+                        <label class="form-check-label fw-bold text-primary" for="crearPerfil">
+                            <i class="bi bi-person-badge"></i> Habilitar Perfil Público
+                        </label>
+                    </div>
+
+                    <div id="seccion_password" style="display: none;" class="p-3 bg-light border rounded">
+                        <label for="password_usuario" class="form-label fw-bold">Contraseña de Acceso</label>
+                        <input type="password" class="form-control" name="password_usuario" id="password_usuario" placeholder="Defina una clave inicial">
+                        <small class="text-muted">El usuario usará su correo y esta clave para ingresar.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -38,3 +54,14 @@
         </div>
     </div>
 </div>
+
+<script>
+function togglePassword() {
+    const section = document.getElementById('seccion_password');
+    const inputPass = document.getElementById('password_usuario');
+    const isChecked = document.getElementById('crearPerfil').checked;
+    
+    section.style.display = isChecked ? 'block' : 'none';
+    inputPass.required = isChecked; // Hace obligatorio el campo si el switch está ON
+}
+</script>

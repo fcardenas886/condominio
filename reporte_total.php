@@ -123,7 +123,7 @@ $reporte = $stmt->fetchAll();
                             <td class="fw-bold">$<?php echo number_format($r['monto_fijo'], 0, ',', '.'); ?></td>
                         </tr>
                         <?php endforeach; ?>
-                    </tbody>
+                    </tbody>  
                 </table>
             </div>
         </div>
