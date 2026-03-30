@@ -30,6 +30,8 @@
             <li><a class="dropdown-item" href="gestion_contratos.php">Contratos</a></li>
             <li><a class="dropdown-item" href="gestion_gastos.php">Gastos Variables</a></li>
             <li><a class="dropdown-item" href="gestion_mantenciones.php">Mantenciones</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="historial_cierres.php"><i class="bi bi-clock-history me-2"></i> Historial cierres contratos</a></li>
           </ul>
         </li>
 
@@ -48,17 +50,23 @@
         </li>
 
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            📊 Reportes
-          </a>
-          <ul class="dropdown-menu shadow">
-            <li><a class="dropdown-item" href="reporte_morosidad.php">Lista de Morosos</a></li>
-            <li><a class="dropdown-item" href="reporte_ingresos.php">Resumen de Ingresos</a></li>
-            <li><a class="dropdown-item" href="reporte_egresos.php">Resumen de Egresos</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="balance_general.php">Balance General</a></li>
-          </ul>
-        </li>
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        📊 Reportes
+    </a>
+    <ul class="dropdown-menu shadow">
+        <li><a class="dropdown-item fw-bold" href="reporte_total.php"><i class="bi bi-clipboard-data"></i> Reporte Maestro de Contratos</a></li>
+        <li><a class="dropdown-item" href="historial_cierres.php"><i class="bi bi-archive"></i> Historial de Cierres</a></li>
+        
+        <li><hr class="dropdown-divider"></li>
+        
+        <li><a class="dropdown-item" href="reporte_morosidad.php">Lista de Morosos</a></li>
+        <li><a class="dropdown-item" href="reporte_ingresos.php">Resumen de Ingresos</a></li>
+        <li><a class="dropdown-item" href="reporte_egresos.php">Resumen de Egresos</a></li>
+        
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="balance_general.php">Balance General</a></li>
+    </ul>
+</li>
       </ul>
       
       <div class="d-flex align-items-center">

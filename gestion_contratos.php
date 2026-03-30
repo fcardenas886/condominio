@@ -6,15 +6,15 @@ if (!isset($_SESSION['id_admin'])) {
 }
 require_once 'includes/conexion.php';
 
-// 1. Casas disponibles para el select 🏠
+// 1. Casas disponibles para el select
 $stmt_casas = $pdo->query("SELECT id_casa, numero_casa FROM casas WHERE activo = 1 AND estado = 'Disponible' ORDER BY numero_casa ASC");
 $casas_disponibles = $stmt_casas->fetchAll();
 
-// 2. Arrendatarios para el select 👤
+// 2. Arrendatarios para el select
 $stmt_arr = $pdo->query("SELECT id_arrendatario, nombre FROM arrendatarios WHERE activo = 1 ORDER BY nombre ASC");
 $arrendatarios_lista = $stmt_arr->fetchAll();
 
-// 3. Listado de contratos para la tabla (Usamos JOIN para traer nombres) 📜
+// 3. Listado de contratos para la tabla
 $sql_tabla = "SELECT con.*, cas.numero_casa, arr.nombre as nombre_arrendatario 
               FROM contratos con
               JOIN casas cas ON con.id_casa = cas.id_casa
@@ -26,14 +26,17 @@ $contratos = $pdo->query($sql_tabla)->fetchAll();
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Contratos - CondoPro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
+
 <body class="bg-light">
     <?php include 'includes/menu.php'; ?>
+    <?php include 'includes/modals/modal_finalizar_contrato.php'; ?>
 
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -59,18 +62,19 @@ $contratos = $pdo->query($sql_tabla)->fetchAll();
                         </thead>
                         <tbody>
                             <?php foreach ($contratos as $c): ?>
-                            <tr>
-                                <td class="fw-bold">Casa <?php echo $c['numero_casa']; ?></td>
-                                <td><?php echo htmlspecialchars($c['nombre_arrendatario']); ?></td>
-                                <td>$<?php echo number_format($c['monto_fijo'], 0, ',', '.'); ?></td>
-                                <td><?php echo date('d/m/Y', strtotime($c['fecha_inicio'])); ?></td>
-                                <td><span class="badge bg-success">Vigente</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-danger" title="Finalizar Contrato">
-                                        <i class="bi bi-x-circle"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td class="fw-bold">Casa <?php echo $c['numero_casa']; ?></td>
+                                    <td><?php echo htmlspecialchars($c['nombre_arrendatario']); ?></td>
+                                    <td>$<?php echo number_format($c['monto_fijo'], 0, ',', '.'); ?></td>
+                                    <td><?php echo date('d/m/Y', strtotime($c['fecha_inicio'])); ?></td>
+                                    <td><span class="badge bg-success">Vigente</span></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-danger"
+                                            onclick="prepararCierre(<?php echo $c['id_contrato']; ?>, <?php echo $c['id_casa']; ?>, '<?php echo $c['numero_casa']; ?>')">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -83,5 +87,53 @@ $contratos = $pdo->query($sql_tabla)->fetchAll();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // --- 1. Lógica para abrir el Modal ---
+        function prepararCierre(id_contrato, id_casa, numero_casa) {
+            document.getElementById('fin_id_contrato').value = id_contrato;
+            document.getElementById('fin_id_casa').value = id_casa;
+            document.getElementById('texto_confirmacion').innerText = "¿Finalizar contrato de la Casa " + numero_casa + "?";
+            
+            var myModal = new bootstrap.Modal(document.getElementById('modalFinalizar'));
+            myModal.show();
+        }
+
+        // --- 2. Lógica para mostrar Alertas (SweetAlert2) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.has('success')) {
+            const status = urlParams.get('success');
+            
+            if (status === 'finalizado') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Contrato Finalizado!',
+                    text: 'Se ha guardado el cierre y la propiedad ya está disponible.',
+                    confirmButtonColor: '#0d6efd'
+                });
+            } else if (status === '1') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: 'El nuevo contrato se ha creado correctamente.',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+            }
+            // Limpia la URL para que no repita la alerta al recargar
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        if (urlParams.has('error')) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un problema al procesar la solicitud.'
+            });
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+
 </body>
 </html>

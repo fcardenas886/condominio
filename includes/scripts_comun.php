@@ -1,25 +1,31 @@
-<div id="loader-global" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;" role="status">
-        <span class="visually-hidden">Cargando...</span>
+<div id="loader-global" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); color: white;">
+    
+    <div class="mb-3 text-center">
+        <img src="assets/GeSTIDom2.gif" alt="Cargando..." style="width: 180px; height: auto; filter: drop-shadow(0 0 15px rgba(0, 200, 255, 0.4));">
     </div>
-    <h5 class="mt-3 fw-bold text-dark">GestiDom</h5>
-    <p class="text-muted small" id="loader-text">Procesando solicitud...</p>
+
+    <div class="text-center">
+        <h4 class="fw-bold mb-0" style="letter-spacing: 2px;">GeSTIDom</h4>
+        <p class="text-info small text-uppercase mb-2" style="letter-spacing: 1px; font-size: 0.75rem;">Sistema STI</p>
+        <div id="loader-text" class="fw-light" style="font-size: 0.9rem; opacity: 0.8;">Procesando solicitud...</div>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Se activa al enviar cualquier formulario (Login, Pagos, Filtros)
+    // Se activa al enviar cualquier formulario
     $('form').on('submit', function() {
-        $('#loader-global').css('display', 'flex').hide().fadeIn(200);
+        // Mostramos el loader con un efecto de desvanecimiento
+        $('#loader-global').css('display', 'flex').hide().fadeIn(300);
         
-        // Desactivamos el botón para evitar doble envío accidental
+        // Desactivamos el botón de envío para evitar duplicados
         $(this).find('button[type="submit"]').prop('disabled', true);
     });
 
-    // También puedes activarlo manualmente en enlaces de reportes pesados
+    // Función para activar manualmente en enlaces con la clase .btn-load
     $('.btn-load').on('click', function() {
-        $('#loader-global').css('display', 'flex').hide().fadeIn(200);
+        $('#loader-global').css('display', 'flex').hide().fadeIn(300);
     });
 });
 </script>

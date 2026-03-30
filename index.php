@@ -2,22 +2,10 @@
 session_start();
 
 // Detectar flash messages
-$errorMessage = null;
-$successMessage = null;
-$warningMessage = null;
-
-if (isset($_SESSION['error'])) {
-    $errorMessage = $_SESSION['error'];
-    unset($_SESSION['error']);
-}
-if (isset($_SESSION['success'])) {
-    $successMessage = $_SESSION['success'];
-    unset($_SESSION['success']);
-}
-if (isset($_SESSION['warning'])) {
-    $warningMessage = $_SESSION['warning'];
-    unset($_SESSION['warning']);
-}
+$errorMessage = null; $successMessage = null; $warningMessage = null;
+if (isset($_SESSION['error'])) { $errorMessage = $_SESSION['error']; unset($_SESSION['error']); }
+if (isset($_SESSION['success'])) { $successMessage = $_SESSION['success']; unset($_SESSION['success']); }
+if (isset($_SESSION['warning'])) { $warningMessage = $_SESSION['warning']; unset($_SESSION['warning']); }
 ?>
 
 <!DOCTYPE html>
@@ -31,7 +19,8 @@ if (isset($_SESSION['warning'])) {
         body { background-color: #f8f9fa; }
         .card { border-radius: 15px; border: none; }
         .btn-primary { border-radius: 10px; padding: 12px; font-weight: bold; }
-        /* Ajuste para el loader en esta página específica si fuera necesario */
+        /* Ajustamos el tamaño máximo del logo para que no empuje el form */
+        .logo-login { max-height: 140px; width: auto; }
     </style>
 </head>
 <body class="bg-light">
@@ -40,17 +29,19 @@ if (isset($_SESSION['warning'])) {
             <div class="col-md-4">
                 
                 <?php if ($errorMessage): ?>
-                    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-3" role="alert">
                         <strong>⚠️ Error:</strong> <?php echo htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8'); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
                 
-                <div class="card shadow-lg mt-4">
+                <div class="card shadow-lg">
                     <div class="card-body p-4">
-                        <div class="text-center mb-4">
-                            <h2 class="fw-bold">GeSTIDom</h2>
-                            <p class="text-muted small text-uppercase" style="letter-spacing: 2px;">Sistema STI</p>
+                        
+                        <div class="text-center mb-3">
+                            <img src="assets/logo.PNG" alt="GeSTIDom Logo" class="img-fluid logo-login mb-0">
+                            <h2 class="fw-bold mt-1 mb-0">GeSTIDom</h2>
+                            <p class="text-muted small text-uppercase mb-3" style="letter-spacing: 2px; font-size: 0.7rem;">Sistema STI</p>
                         </div>
                         
                         <form id="loginForm" action="modulos/login_proceso.php" method="POST">
@@ -68,7 +59,7 @@ if (isset($_SESSION['warning'])) {
                         </form>
                     </div>
                 </div>
-                <p class="text-center mt-4 text-muted small">&copy; 2026 GeSTIDom by STI</p>
+                <p class="text-center mt-3 text-muted small" style="font-size: 0.75rem;">&copy; 2026 GeSTIDom by STI</p>
             </div>
         </div>
     </div>
@@ -80,22 +71,16 @@ if (isset($_SESSION['warning'])) {
 
     <script>
     $(document).ready(function() {
-        // Interceptamos el envío del formulario de login
         $('#loginForm').on('submit', function(e) {
-            e.preventDefault(); // Detenemos el envío inmediato
-            
+            e.preventDefault(); 
             var formulario = this;
             var boton = $('#btnEntrar');
 
-            // 1. Mostrar el loader global (el que pusimos en scripts_comun)
-            // Ajustamos el texto para el login
-            $('#loader-text').text('Validando credenciales STI...');
+            $('#loader-text').text('Iniciando sesión segura...');
             $('#loader-global').css('display', 'flex').hide().fadeIn(400);
 
-            // 2. Cambiar estado del botón
-            boton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Verificando...');
+            boton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> STI Verificando...');
 
-            // 3. Esperar 2 segundos antes de procesar en el servidor
             setTimeout(function() {
                 formulario.submit();
             }, 2000); 

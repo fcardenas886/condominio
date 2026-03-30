@@ -59,6 +59,17 @@
                             <input type="date" name="fecha_termino" class="form-control">
                         </div>
                     </div>
+                <div class="row">
+    <div class="col-md-6 mb-3 d-flex align-items-center">
+    <div class="form-check form-switch mt-4">
+        <input class="form-check-input" type="checkbox" id="switchModalidad" name="modalidad_cobro" value="Anticipado">
+        <label class="form-check-label fw-bold ms-2" for="switchModalidad">
+            Cobro Anticipado <span class="text-muted fw-normal">(Por defecto: Vencido)</span>
+        </label>
+    </div>
+</div>
+    </div>
+
                 </div>
 
                 <div class="modal-footer bg-light">

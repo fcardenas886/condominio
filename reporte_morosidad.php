@@ -1,4 +1,4 @@
-}<?php
+<?php
 session_start();
 // Salimos de la carpeta 'reportes' para buscar 'includes'
 include 'includes/conexion.php'; 
