@@ -6,9 +6,14 @@ if (!isset($_SESSION['id_admin'])) {
 }
 require_once 'includes/conexion.php';
 
-// 1. CAMBIO: Consulta a la tabla arrendatarios
-// Ordenamos por nombre para que sea más fácil de buscar
-$stmt = $pdo->query("SELECT * FROM arrendatarios WHERE activo = 1 ORDER BY nombre ASC");
+// 1. CONSULTA ACTUALIZADA: Detectamos si el arrendatario tiene perfil de usuario asociado
+$sql = "SELECT a.*, 
+        (SELECT COUNT(*) FROM usuarios u WHERE u.id_entidad_asociada = a.id_arrendatario AND u.rol = 'user') as tiene_perfil 
+        FROM arrendatarios a 
+        WHERE a.activo = 1 
+        ORDER BY a.nombre ASC";
+
+$stmt = $pdo->query($sql);
 $arrendatarios = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
@@ -66,6 +71,7 @@ $arrendatarios = $stmt->fetchAll();
                                         <th>RUT</th>
                                         <th>Teléfono</th>
                                         <th>Correo</th>
+                                        <th class="text-center">Perfil Web</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
@@ -77,16 +83,24 @@ $arrendatarios = $stmt->fetchAll();
                                             <td><?php echo htmlspecialchars($a['telefono']); ?></td>
                                             <td><?php echo htmlspecialchars($a['correo']); ?></td>
                                             <td class="text-center">
+                                                <?php if ($a['tiene_perfil'] > 0): ?>
+                                                    <span class="badge bg-info text-dark"><i class="bi bi-check-circle"></i> Activo</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-light text-muted border">No habilitado</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center">
                                                 <div class="btn-group btn-group-sm">
                                                     <button type="button"
                                                         class="btn btn-outline-warning"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modalArrendatario"
                                                         data-id="<?php echo $a['id_arrendatario']; ?>"
-                                                        data-nombre="<?php echo $a['nombre']; ?>"
+                                                        data-nombre="<?php echo htmlspecialchars($a['nombre']); ?>"
                                                         data-rut="<?php echo $a['rut']; ?>"
                                                         data-telefono="<?php echo $a['telefono']; ?>"
                                                         data-correo="<?php echo $a['correo']; ?>"
+                                                        data-perfil="<?php echo $a['tiene_perfil']; ?>" 
                                                         data-accion="editar">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>

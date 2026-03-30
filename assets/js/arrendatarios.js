@@ -4,16 +4,18 @@ const modalArrendatario = document.getElementById('modalArrendatario');
 if (modalArrendatario) {
     // 2. Escuchamos el evento cuando el modal se está por mostrar
     modalArrendatario.addEventListener('show.bs.modal', event => {
-        // El botón que activó el modal
         const boton = event.relatedTarget;
-        
-        // Extraemos la información de los atributos data-
         const accion = boton.getAttribute('data-accion');
         
         // Elementos del formulario
         const titulo = modalArrendatario.querySelector('.modal-title');
         const inputAccion = modalArrendatario.querySelector('#accion_arrendatario');
         const btnGuardar = modalArrendatario.querySelector('#btnGuardarArrendatario');
+        
+        // Elementos nuevos del Perfil Público
+        const switchPerfil = document.getElementById('crearPerfil');
+        const seccionPass = document.getElementById('seccion_password');
+        const inputPass = document.getElementById('password_usuario');
 
         if (accion === 'editar') {
             // Configuramos para EDICIÓN ✏️
@@ -21,12 +23,26 @@ if (modalArrendatario) {
             inputAccion.value = 'editar';
             btnGuardar.className = 'btn btn-warning';
 
-            // Rellenamos los campos con los datos del botón
+            // Rellenamos los campos básicos
             document.getElementById('id_arrendatario').value = boton.getAttribute('data-id');
             document.getElementById('nombre').value = boton.getAttribute('data-nombre');
             document.getElementById('rut').value = boton.getAttribute('data-rut');
             document.getElementById('telefono').value = boton.getAttribute('data-telefono');
             document.getElementById('correo').value = boton.getAttribute('data-correo');
+
+            // --- Lógica del Perfil Público ---
+            const tienePerfil = boton.getAttribute('data-perfil'); // 1 o 0
+            if (tienePerfil == '1') {
+                switchPerfil.checked = true;
+                seccionPass.style.display = 'block';
+                inputPass.required = false; // No obligatorio al editar (solo si se cambia)
+                inputPass.placeholder = "Dejar en blanco para mantener actual";
+            } else {
+                switchPerfil.checked = false;
+                seccionPass.style.display = 'none';
+                inputPass.required = false;
+                inputPass.placeholder = "Defina una clave inicial";
+            }
         } else {
             // Configuramos para CREACIÓN ✨
             titulo.textContent = '👤 Nuevo Arrendatario';
@@ -36,15 +52,31 @@ if (modalArrendatario) {
             // Limpiamos el formulario
             document.getElementById('formArrendatario').reset();
             document.getElementById('id_arrendatario').value = '';
+            
+            // Resetear Perfil Público
+            switchPerfil.checked = false;
+            seccionPass.style.display = 'none';
+            inputPass.required = false;
+            inputPass.placeholder = "Defina una clave inicial";
         }
     });
 }
 
-// 3. Función para la alerta de eliminación con SweetAlert2 🗑️
+// Función para manejar la visibilidad de la contraseña (la que llamamos desde el HTML)
+function togglePassword() {
+    const section = document.getElementById('seccion_password');
+    const inputPass = document.getElementById('password_usuario');
+    const isChecked = document.getElementById('crearPerfil').checked;
+    
+    section.style.display = isChecked ? 'block' : 'none';
+    inputPass.required = isChecked;
+}
+
+// 3. Alerta de eliminación
 function confirmarEliminarArrendatario(id) {
     Swal.fire({
         title: '¿Estás seguro?',
-        text: "El arrendatario será desactivado del sistema.",
+        text: "El arrendatario y su acceso al sistema serán desactivados.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -53,7 +85,6 @@ function confirmarEliminarArrendatario(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Redirigimos al controlador con la acción eliminar
             window.location.href = `modulos/arrendatarios_controlador.php?accion=eliminar&id=${id}`;
         }
     });
