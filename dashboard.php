@@ -25,7 +25,7 @@ $recaudacionMes = $stmt_ing->fetchColumn() ?: 0;
 // 2. Morosidad Total Crítica
 $totalMoroso = $pdo->query("SELECT SUM(saldo_pendiente) FROM vista_reporte_morosidad")->fetchColumn() ?: 0;
 
-$nombreAdmin = $_SESSION['nombre_admin'] ?? 'Admin';
+$nombreAdmin = $_SESSION['nombre_usuario'] ?? 'Admin';
 ?>
 
 <!DOCTYPE html>

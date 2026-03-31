@@ -71,7 +71,7 @@
       
       <div class="d-flex align-items-center">
         <span class="navbar-text me-3 text-white">
-          <small>Admin: <?php echo $_SESSION['nombre_admin']; ?></small>
+          <small>Admin: <?php echo $_SESSION['nombre_usuario'] ?? $_SESSION['nombre_admin'];?></small>
         </span>
         <a href="logout.php" class="btn btn-outline-danger btn-sm">Salir</a>
       </div>
